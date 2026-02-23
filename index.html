@@ -1,425 +1,559 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>استمارة الرفع العمراني - نسخة مطورة</title>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>استمارة الرفع العمراني - نسخة مطورة</title>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  
-  <style>
-    :root {
-      --bg-color: #f4f5f7;
-      --card-bg: #ffffff;
-      --primary: #455a64;
-      --secondary: #78909c;
-      --accent: #d4a373;
-      --text-main: #263238;
-      --text-muted: #546e7a;
-      --success: #4caf50;
-      --border: #cfd8dc;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 15px;
-      font-size: 16px;
-    }
-    
-    .container {
-      max-width: 650px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      border-top: 8px solid var(--primary);
-    }
-    
-    h2 {
-      text-align: center;
-      color: var(--primary);
-      margin-top: 0;
-      padding-bottom: 15px;
-      border-bottom: 2px solid var(--border);
-    }
-    
-    .form-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 15px;
-    }
-    
-    .form-group {
-      flex: 1;
-      margin-bottom: 15px;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      color: var(--primary);
-    }
-    
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      box-sizing: border-box;
-      background-color: #fafbfc;
-    }
-    
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1.1em;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-    
-    .btn-save {
-      background-color: var(--primary);
-      color: white;
-    }
-    
-    .btn-save:hover {
-      background-color: #37474f;
-    }
-    
-    .btn-export {
-      background-color: var(--accent);
-      color: white;
-      width: auto;
-      padding: 10px 25px;
-      margin-bottom: 20px;
-    }
-    
-    .btn-cancel {
-      background-color: #e57373;
-      color: white;
-      display: none;
-    }
-    
-    .record-list {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #fdfdfd;
-    }
-    
-    .record-item {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-    
-    .record-item:hover {
-      background: #f1f3f4;
-    }
-    
-    .toast {
-      visibility: hidden;
-      min-width: 250px;
-      background-color: var(--success);
-      color: white;
-      text-align: center;
-      border-radius: 6px;
-      padding: 12px;
-      position: fixed;
-      left: 50%;
-      bottom: 30px;
-      transform: translateX(-50%);
-      z-index: 100;
-    }
-    
-    .toast.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-    
-    @keyframes fadein {
-      from {
-        bottom: 0;
-        opacity: 0;
-      }
-      
-      to {
-        bottom: 30px;
-        opacity: 1;
-      }
-    }
-    
-    @keyframes fadeout {
-      from {
-        bottom: 30px;
-        opacity: 1;
-      }
-      
-      to {
-        bottom: 0;
-        opacity: 0;
-      }
-    }
-  </style>
-</head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<body>
-  <div class="container">
-    <h2>الرفع العمراني</h2>
-    
-    
-    <div class="form-row">
-      <div class="form-group">
-        <label>المنطقة</label>
-        <select id="zone">
-          <option value="المنطقة الأولى">المنطقة الأولى</option>
-          <option value="المنطقة الثانية">المنطقة الثانية</option>
-          <option value="المنطقة الثالثة">المنطقة الثالثة</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>رقم البلوك</label>
-        <input type="number" id="block" placeholder="1">
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label>اسم / رقم المبنى</label>
-      <input type="text" id="buildingId" placeholder="مثال: مبنى 12">
-    </div>
-    
-    <div class="form-row">
-      <div class="form-group">
-        <label>الاستعمال</label>
-        <select id="usage">
-          <option value="سكني">سكني</option>
-          <option value="تجاري">تجاري</option>
-          <option value="سكني تجاري">سكني تجاري</option>
-          <option value="إداري">إداري</option>
-          <option value="تعليمي">تعليمي</option>
-          <option value="ثقافي">ثقافي</option>
-          <option value="صحي">صحي</option>
-          <option value="ديني">ديني</option>
-          <option value="اجتماعي">اجتماعي</option>
-          <option value="ترفيهي">ترفيهي</option>
-          <option value="صناعي">صناعي</option>
-          <option value="مقابر">مقابر</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>الارتفاع (أدوار)</label>
-        <select id="height">
-          <option value="1-2">1-2</option>
-          <option value="3-5">3-5</option>
-          <option value="أكثر من 5">أكثر من 5</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="form-row">
-      <div class="form-group">
-        <label>حالة المبنى</label>
-        <select id="condition">
-          <option value="جيدة">جيدة</option>
-          <option value="متوسطة">متوسطة</option>
-          <option value="رديئة">رديئة</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>أسلوب الإنشاء</label>
-        <select id="structure">
-          <option value="حوائط حاملة">حوائط حاملة</option>
-          <option value="هيكلي">هيكلي</option>
-          <option value="حجر">حجر</option>
-          <option value="حديد">حديد</option>
-          <option value="خشب/عش">خشب/عش</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label>ملاحظات</label>
-      <textarea id="notes" placeholder="مثال:المني قابل للانهيار"></textarea>
-    </div>
-    
-    <button id="btnCancel" class="btn-cancel" onclick="cancelEdit()">إلغاء التعديل</button>
-    <button id="btnSave" class="btn-save" onclick="saveRecord()">حفظ المبنى</button>
-    
-    <hr>
-    
-    <div style="text-align: center;">
-      <button class="btn-export" onclick="exportData()">⬇️ تصدير لملف إكسل</button>
-    </div>
-    
-    <div style="font-weight: bold; margin-bottom: 10px;">المباني المسجلة:</div>
-    <div class="record-list" id="recordList"></div>
-  </div>
-  
-  <div id="toast" class="toast"></div>
-  
-  <script>
-    // 1. استرجاع البيانات
-    let records = [];
-    try {
-      records = JSON.parse(localStorage.getItem('urbanRecords')) || [];
-    } catch (e) { console.error("Error reading localStorage", e); }
-    
-    let currentEditId = null;
-    
-    const fields = {
-      zone: document.getElementById('zone'),
-      block: document.getElementById('block'),
-      buildingId: document.getElementById('buildingId'),
-      usage: document.getElementById('usage'),
-      height: document.getElementById('height'),
-      condition: document.getElementById('condition'),
-      structure: document.getElementById('structure'),
-      notes: document.getElementById('notes')
-    };
-    
-    renderList();
-    
-    // 2. دالة الحفظ مع التحقق من التكرار
-    function saveRecord() {
-      const bId = fields.buildingId.value.trim();
-      if (!bId) { alert("من فضلك أدخل اسم/رقم المبنى"); return; }
-      
-      // منع التكرار (Case-insensitive)
-      const isDuplicate = records.some(r =>
-        r.buildingId.toLowerCase() === bId.toLowerCase() && r.id !== currentEditId
-      );
-      
-      if (isDuplicate) {
-        alert('⚠️ تنبيه: اسم أو رقم المبنى هذا "مستخدم مسبقاً" في السجلات!');
-        return;
+    <style>
+      :root {
+        --bg-color: #f4f5f7;
+        --card-bg: #ffffff;
+        --primary: #455a64;
+        --secondary: #78909c;
+        --accent: #d4a373;
+        --text-main: #263238;
+        --text-muted: #546e7a;
+        --success: #4caf50;
+        --border: #cfd8dc;
       }
-      
-      const data = {
-        id: currentEditId || Date.now(),
-        zone: fields.zone.value,
-        block: fields.block.value,
-        buildingId: bId,
-        usage: fields.usage.value,
-        height: fields.height.value,
-        condition: fields.condition.value,
-        structure: fields.structure.value,
-        notes: fields.notes.value
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 15px;
+        font-size: 16px;
+      }
+
+      .container {
+        max-width: 650px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border-top: 8px solid var(--primary);
+      }
+
+      h2 {
+        text-align: center;
+        color: var(--primary);
+        margin-top: 0;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .form-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+
+      .form-group {
+        flex: 1;
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-sizing: border-box;
+        background-color: #fafbfc;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 1.1em;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+
+      .btn-save {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .btn-save:hover {
+        background-color: #37474f;
+      }
+
+      .btn-export {
+        background-color: var(--accent);
+        color: white;
+        width: auto;
+        padding: 10px 25px;
+        margin-bottom: 20px;
+      }
+
+      .btn-cancel {
+        background-color: #e57373;
+        color: white;
+        display: none;
+      }
+
+      .record-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #fdfdfd;
+      }
+
+      .record-item {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .record-item:hover {
+        background: #f1f3f4;
+      }
+
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: var(--success);
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+        padding: 12px;
+        position: fixed;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        z-index: 100;
+      }
+
+      .toast.show {
+        visibility: visible;
+        animation:
+          fadein 0.5s,
+          fadeout 0.5s 2.5s;
+      }
+
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>الرفع العمراني</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>المنطقة</label>
+          <select id="zone">
+            <option value="المنطقة الأولى">المنطقة الأولى</option>
+            <option value="المنطقة الثانية">المنطقة الثانية</option>
+            <option value="المنطقة الثالثة">المنطقة الثالثة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>رقم البلوك</label>
+          <input type="number" id="block" placeholder="1" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>اسم / رقم المبنى</label>
+        <input type="text" id="buildingId" placeholder="مثال: مبنى 12" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الاستعمال</label>
+          <select id="usage">
+            <option value="سكني">سكني</option>
+            <option value="تجاري">تجاري</option>
+            <option value="سكني تجاري">سكني تجاري</option>
+            <option value="إداري">إداري</option>
+            <option value="تعليمي">تعليمي</option>
+            <option value="ثقافي">ثقافي</option>
+            <option value="صحي">صحي</option>
+            <option value="ديني">ديني</option>
+            <option value="اجتماعي">اجتماعي</option>
+            <option value="ترفيهي">ترفيهي</option>
+            <option value="صناعي">صناعي</option>
+            <option value="مقابر">مقابر</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الارتفاع (أدوار)</label>
+          <select id="height">
+            <option value="1-2">1-2</option>
+            <option value="3-5">3-5</option>
+            <option value="أكثر من 5">أكثر من 5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>حالة المبنى</label>
+          <select id="condition">
+            <option value="جيدة">جيدة</option>
+            <option value="متوسطة">متوسطة</option>
+            <option value="رديئة">رديئة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>أسلوب الإنشاء</label>
+          <select id="structure">
+            <option value="حوائط حاملة">حوائط حاملة</option>
+            <option value="هيكلي">هيكلي</option>
+            <option value="حجر">حجر</option>
+            <option value="حديد">حديد</option>
+            <option value="خشب/عش">خشب/عش</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="notes" placeholder="مثال:المني قابل للانهيار"></textarea>
+      </div>
+
+      <button id="btnCancel" class="btn-cancel" onclick="cancelEdit()">
+        إلغاء التعديل
+      </button>
+      <button id="btnSave" class="btn-save" onclick="saveRecord()">
+        حفظ المبنى
+      </button>
+
+      <hr />
+
+      <div style="text-align: center">
+        <button class="btn-export" onclick="exportData()">
+          ⬇️ تصدير لملف إكسل
+        </button>
+      </div>
+
+      <div style="font-weight: bold; margin-bottom: 10px">المباني المسجلة:</div>
+      <div class="record-list" id="recordList"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script>
+      // 1. استرجاع البيانات
+      let records = [];
+      try {
+        records = JSON.parse(localStorage.getItem("urbanRecords")) || [];
+      } catch (e) {
+        console.error("Error reading localStorage", e);
+      }
+
+      let currentEditId = null;
+
+      const fields = {
+        zone: document.getElementById("zone"),
+        block: document.getElementById("block"),
+        buildingId: document.getElementById("buildingId"),
+        usage: document.getElementById("usage"),
+        height: document.getElementById("height"),
+        condition: document.getElementById("condition"),
+        structure: document.getElementById("structure"),
+        notes: document.getElementById("notes"),
       };
-      
-      if (currentEditId) {
-        const idx = records.findIndex(r => r.id === currentEditId);
-        if (idx > -1) records[idx] = data;
-      } else {
-        records.push(data);
-      }
-      
-      localStorage.setItem('urbanRecords', JSON.stringify(records));
-      showToast("✅ تم الحفظ بنجاح!");
-      renderList();
-      cancelEdit();
-    }
-    
-    // 3. دالة التصدير للإكسل (بنفس التخطيط المطلوب)
-    function exportData() {
-      if (typeof XLSX === 'undefined') {
-        alert("خطأ: مكتبة الإكسل لم يتم تحميلها. تأكد من اتصالك بالإنترنت.");
-        return;
-      }
-      if (records.length === 0) { alert("لا توجد بيانات لتصديرها."); return; }
-      
-      const header1 = ["المنطقة", "بلوك", "اسم/رقم المبنى", "الاستعمالات", "", "", "", "", "", "", "", "", "", "", "", "ارتفاعات المباني", "", "", "حالات المباني", "", "", "مواد واسلوب الانشاء", "", "", "", ""];
-      const header2 = ["", "", "", "سكني", "تجاري", "سكني تجاري", "إداري", "تعليمي", "ثقافي", "صحي", "ديني", "اجتماعي", "ترفيهي", "صناعي", "مقابر", "1-2", "3-5", "أكثر من 5", "جيدة", "متوسطة", "رديئة", "حوائط حاملة", "هيكلي", "حجر", "حديد", "خشب/عش"];
-      
-      const rows = records.map(r => {
-        const row = new Array(26).fill("");
-        row[0] = r.zone;
-        row[1] = r.block;
-        row[2] = r.buildingId;
-        
-        const check = (val, start, opts) => {
-          const i = opts.indexOf(val);
-          if (i > -1) row[start + i] = "✓";
-        };
-        
-        check(r.usage, 3, ["سكني", "تجاري", "سكني تجاري", "إداري", "تعليمي", "ثقافي", "صحي", "ديني", "اجتماعي", "ترفيهي", "صناعي", "مقابر"]);
-        check(r.height, 15, ["1-2", "3-5", "أكثر من 5"]);
-        check(r.condition, 18, ["جيدة", "متوسطة", "رديئة"]);
-        check(r.structure, 21, ["حوائط حاملة", "هيكلي", "حجر", "حديد", "خشب/عش"]);
-        return row;
-      });
-      
-      const ws = XLSX.utils.aoa_to_sheet([header1, header2, ...rows]);
-      
-      // دمج الخلايا كما في الصورة
-      ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } },
-        { s: { r: 0, c: 2 }, e: { r: 1, c: 2 } }, { s: { r: 0, c: 3 }, e: { r: 0, c: 14 } },
-        { s: { r: 0, c: 15 }, e: { r: 0, c: 17 } }, { s: { r: 0, c: 18 }, e: { r: 0, c: 20 } },
-        { s: { r: 0, c: 21 }, e: { r: 0, c: 25 } }
-      ];
-      
-      ws['!dir'] = 'rtl';
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "الرفع العمراني");
-      XLSX.writeFile(wb, `Urban_Survey_${new Date().toISOString().slice(0,10)}.xlsx`);
-    }
-    
-    // 4. الدوال المساعدة
-    function renderList() {
-      const list = document.getElementById('recordList');
-      list.innerHTML = records.length ? '' : '<div style="padding:15px; color:#999; text-align:center;">لا توجد سجلات</div>';
-      [...records].reverse().forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'record-item';
-        item.onclick = () => loadForEdit(r.id);
-        item.innerHTML = `<div><strong>${r.buildingId}</strong><br><small>${r.zone} - بلوك ${r.block}</small></div><div style="color:var(--secondary)">✎</div>`;
-        list.appendChild(item);
-      });
-    }
-    
-    function loadForEdit(id) {
-      const r = records.find(x => x.id === id);
-      if (!r) return;
-      currentEditId = id;
-      Object.keys(fields).forEach(key => fields[key].value = r[key]);
-      document.getElementById('btnSave').innerText = "تحديث البيانات";
-      document.getElementById('btnSave').style.backgroundColor = "#ff9800";
-      document.getElementById('btnCancel').style.display = "block";
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    function cancelEdit() {
-      currentEditId = null;
-      fields.buildingId.value = "";
-      fields.notes.value = "";
-      document.getElementById('btnSave').innerText = "حفظ المبنى";
-      document.getElementById('btnSave').style.backgroundColor = "var(--primary)";
-      document.getElementById('btnCancel').style.display = "none";
-    }
-    
-    function showToast(msg) {
-      const t = document.getElementById("toast");
-      t.innerText = msg;
-      t.className = "toast show";
-      setTimeout(() => t.className = "toast", 3000);
-    }
-  </script>
-</body>
 
+      // دالة جديدة: استخراج الرقم من النص وزيادته بمقدار 1
+      function getNextBuildingId(currentId) {
+        const trimmedId = currentId.trim();
+        // البحث عن أي أرقام في نهاية النص
+        const match = trimmedId.match(/^(.*?)(\d+)$/);
+        if (match) {
+          const prefix = match[1]; // النص اللي قبل الرقم (مثال: "مبنى ")
+          const num = parseInt(match[2], 10) + 1; // الرقم زائد 1
+          return prefix + num;
+        }
+        // إذا كان النص لا يحتوي على رقم في آخره
+        return trimmedId + " 2";
+      }
+
+      renderList();
+
+      // إعداد الرقم التلقائي عند فتح الصفحة لأول مرة
+      if (records.length > 0) {
+        const lastRecord = records[records.length - 1];
+        fields.buildingId.value = getNextBuildingId(lastRecord.buildingId);
+      }
+
+      // 2. دالة الحفظ مع التحقق من التكرار والزيادة التلقائية
+      function saveRecord() {
+        const bId = fields.buildingId.value.trim();
+        if (!bId) {
+          alert("من فضلك أدخل اسم/رقم المبنى");
+          return;
+        }
+
+        // منع التكرار (Case-insensitive)
+        const isDuplicate = records.some(
+          (r) =>
+            r.buildingId.toLowerCase() === bId.toLowerCase() &&
+            r.id !== currentEditId,
+        );
+
+        if (isDuplicate) {
+          alert('⚠️ تنبيه: اسم أو رقم المبنى هذا "مستخدم مسبقاً" في السجلات!');
+          return;
+        }
+
+        const data = {
+          id: currentEditId || Date.now(),
+          zone: fields.zone.value,
+          block: fields.block.value,
+          buildingId: bId,
+          usage: fields.usage.value,
+          height: fields.height.value,
+          condition: fields.condition.value,
+          structure: fields.structure.value,
+          notes: fields.notes.value,
+        };
+
+        let nextId = "";
+
+        if (currentEditId) {
+          // حالة التعديل على سجل موجود
+          const idx = records.findIndex((r) => r.id === currentEditId);
+          if (idx > -1) records[idx] = data;
+        } else {
+          // حالة إضافة سجل جديد
+          records.push(data);
+          nextId = getNextBuildingId(bId); // تجهيز الرقم للمبنى القادم
+        }
+
+        localStorage.setItem("urbanRecords", JSON.stringify(records));
+        showToast("✅ تم الحفظ بنجاح!");
+        renderList();
+        cancelEdit(nextId); // نرسل الرقم الجديد لحقل الإدخال
+      }
+
+      // 3. دالة التصدير للإكسل (كما هي)
+      function exportData() {
+        if (typeof XLSX === "undefined") {
+          alert("خطأ: مكتبة الإكسل لم يتم تحميلها. تأكد من اتصالك بالإنترنت.");
+          return;
+        }
+        if (records.length === 0) {
+          alert("لا توجد بيانات لتصديرها.");
+          return;
+        }
+
+        const header1 = [
+          "المنطقة",
+          "بلوك",
+          "اسم/رقم المبنى",
+          "الاستعمالات",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "ارتفاعات المباني",
+          "",
+          "",
+          "حالات المباني",
+          "",
+          "",
+          "مواد واسلوب الانشاء",
+          "",
+          "",
+          "",
+          "",
+        ];
+        const header2 = [
+          "",
+          "",
+          "",
+          "سكني",
+          "تجاري",
+          "سكني تجاري",
+          "إداري",
+          "تعليمي",
+          "ثقافي",
+          "صحي",
+          "ديني",
+          "اجتماعي",
+          "ترفيهي",
+          "صناعي",
+          "مقابر",
+          "1-2",
+          "3-5",
+          "أكثر من 5",
+          "جيدة",
+          "متوسطة",
+          "رديئة",
+          "حوائط حاملة",
+          "هيكلي",
+          "حجر",
+          "حديد",
+          "خشب/عش",
+        ];
+
+        const rows = records.map((r) => {
+          const row = new Array(26).fill("");
+          row[0] = r.zone;
+          row[1] = r.block;
+          row[2] = r.buildingId;
+
+          const check = (val, start, opts) => {
+            const i = opts.indexOf(val);
+            if (i > -1) row[start + i] = "✓";
+          };
+
+          check(r.usage, 3, [
+            "سكني",
+            "تجاري",
+            "سكني تجاري",
+            "إداري",
+            "تعليمي",
+            "ثقافي",
+            "صحي",
+            "ديني",
+            "اجتماعي",
+            "ترفيهي",
+            "صناعي",
+            "مقابر",
+          ]);
+          check(r.height, 15, ["1-2", "3-5", "أكثر من 5"]);
+          check(r.condition, 18, ["جيدة", "متوسطة", "رديئة"]);
+          check(r.structure, 21, [
+            "حوائط حاملة",
+            "هيكلي",
+            "حجر",
+            "حديد",
+            "خشب/عش",
+          ]);
+          return row;
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet([header1, header2, ...rows]);
+
+        // دمج الخلايا
+        ws["!merges"] = [
+          { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
+          { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } },
+          { s: { r: 0, c: 2 }, e: { r: 1, c: 2 } },
+          { s: { r: 0, c: 3 }, e: { r: 0, c: 14 } },
+          { s: { r: 0, c: 15 }, e: { r: 0, c: 17 } },
+          { s: { r: 0, c: 18 }, e: { r: 0, c: 20 } },
+          { s: { r: 0, c: 21 }, e: { r: 0, c: 25 } },
+        ];
+
+        ws["!dir"] = "rtl";
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "الرفع العمراني");
+        XLSX.writeFile(
+          wb,
+          `Urban_Survey_${new Date().toISOString().slice(0, 10)}.xlsx`,
+        );
+      }
+
+      // 4. الدوال المساعدة
+      function renderList() {
+        const list = document.getElementById("recordList");
+        list.innerHTML = records.length
+          ? ""
+          : '<div style="padding:15px; color:#999; text-align:center;">لا توجد سجلات</div>';
+        [...records].reverse().forEach((r) => {
+          const item = document.createElement("div");
+          item.className = "record-item";
+          item.onclick = () => loadForEdit(r.id);
+          item.innerHTML = `<div><strong>${r.buildingId}</strong><br><small>${r.zone} - بلوك ${r.block}</small></div><div style="color:var(--secondary)">✎</div>`;
+          list.appendChild(item);
+        });
+      }
+
+      function loadForEdit(id) {
+        const r = records.find((x) => x.id === id);
+        if (!r) return;
+        currentEditId = id;
+        Object.keys(fields).forEach((key) => (fields[key].value = r[key]));
+        document.getElementById("btnSave").innerText = "تحديث البيانات";
+        document.getElementById("btnSave").style.backgroundColor = "#ff9800";
+        document.getElementById("btnCancel").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // تم تعديل هذه الدالة لتستقبل الرقم الجديد وتضعه في الحقل
+      function cancelEdit(nextBuildingId = "") {
+        currentEditId = null;
+        // إذا كان هناك رقم جديد، يتم وضعه، وإلا يُترك فارغاً (في حالة إلغاء التعديل اليدوي)
+        if (nextBuildingId) {
+          fields.buildingId.value = nextBuildingId;
+        } else {
+          // عند الضغط على زر "إلغاء التعديل" نعود لآخر رقم متاح
+          if (records.length > 0) {
+            fields.buildingId.value = getNextBuildingId(
+              records[records.length - 1].buildingId,
+            );
+          } else {
+            fields.buildingId.value = "";
+          }
+        }
+        fields.notes.value = "";
+        document.getElementById("btnSave").innerText = "حفظ المبنى";
+        document.getElementById("btnSave").style.backgroundColor =
+          "var(--primary)";
+        document.getElementById("btnCancel").style.display = "none";
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.className = "toast show";
+        setTimeout(() => (t.className = "toast"), 3000);
+      }
+    </script>
+  </body>
 </html>
